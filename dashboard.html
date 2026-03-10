@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <h2 class="mb-3">Analysis History</h2>
+    <p class="text-muted">
+      Track how your resume evolves over time and how different versions perform against various job descriptions.
+    </p>
+
+    {% if analyses %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>File</th>
+            <th>Resume Score</th>
+            <th>ATS</th>
+            <th>Job Match</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in analyses %}
+          <tr>
+            <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ a.original_filename }}</td>
+            <td>{{ "%.1f"|format(a.resume_score or 0) }}</td>
+            <td>{{ "%.1f"|format(a.ats_score or 0) }}</td>
+            <td>{{ "%.1f"|format(a.job_match_score or 0) }}%</td>
+            <td class="text-end">
+              <a href="{{ url_for('analysis_result', analysis_id=a.id) }}" class="btn btn-sm btn-outline-primary">
+                View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-3">
+      No analyses yet. <a href="{{ url_for('upload_resume') }}">Upload your first resume</a> to get started.
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4 mt-4 mt-lg-0">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">Performance Trend</h5>
+      </div>
+      <div class="card-body">
+        {% if analyses %}
+        <canvas id="historyChart" height="220"></canvas>
+        {% else %}
+        <p class="text-muted mb-0 small">
+          Once you have multiple analyses, this chart will visualize how your resume score improves over time.
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if analyses %}
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById("historyChart");
+    if (!ctx) return;
+
+    const labels = [
+      {% for a in analyses %}
+        "{{ a.created_at.strftime('%m-%d') }}",
+      {% endfor %}
+    ];
+    const scores = [
+      {% for a in analyses %}
+        {{ a.resume_score or 0 }},
+      {% endfor %}
+    ];
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Resume Score",
+            data: scores,
+            borderColor: "rgba(25, 135, 84, 1)",
+            backgroundColor: "rgba(25, 135, 84, 0.2)",
+            tension: 0.25,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        scales: {
+          y: {
+            suggestedMin: 0,
+            suggestedMax: 100,
+          },
+        },
+      },
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}
