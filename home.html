@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row align-items-center">
+  <div class="col-lg-6">
+    <h1 class="display-5 fw-bold mb-3">AI-Powered Resume Analyzer</h1>
+    <p class="lead text-muted">
+      Upload your resume, match it against any job description, and get an instant
+      AI-driven score, ATS compatibility insights, and actionable suggestions to
+      improve your chances of getting shortlisted.
+    </p>
+    <ul class="list-unstyled mb-4">
+      <li class="mb-2">✔ Intelligent skill and keyword extraction</li>
+      <li class="mb-2">✔ Job description matching and gap analysis</li>
+      <li class="mb-2">✔ ATS-friendly formatting recommendations</li>
+      <li class="mb-2">✔ Visual score breakdown and history dashboard</li>
+    </ul>
+    {% if not session.get('user_id') %}
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-2">
+      Get Started Free
+    </a>
+    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg border">
+      Login
+    </a>
+    {% else %}
+    <a href="{{ url_for('upload_resume') }}" class="btn btn-primary btn-lg">
+      Analyze My Resume
+    </a>
+    {% endif %}
+  </div>
+  <div class="col-lg-6 mt-4 mt-lg-0">
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Why this is hackathon-ready</h5>
+        <p class="card-text text-muted">
+          This project showcases real-world AI and NLP:
+        </p>
+        <ul class="small text-muted">
+          <li>spaCy-based NLP for skill and section detection</li>
+          <li>Heuristic ATS checks for headings, structure, and formatting</li>
+          <li>Job description alignment and keyword optimization</li>
+          <li>Interactive charts powered by Chart.js</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

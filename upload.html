@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h2 class="mb-3">Upload Resume for Analysis</h2>
+    <p class="text-muted">
+      Upload your resume in <strong>PDF</strong> or <strong>DOCX</strong> format and (optionally) paste
+      a job description. Our AI will extract skills, check ATS compatibility, and compute a
+      job match score.
+    </p>
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="card shadow-sm border-0">
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="resume" class="form-label">Resume file (PDF or DOCX)</label>
+          <input
+            class="form-control"
+            type="file"
+            id="resume"
+            name="resume"
+            accept=".pdf,.docx"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="job_description" class="form-label">Target job description (optional but recommended)</label>
+          <textarea
+            class="form-control"
+            id="job_description"
+            name="job_description"
+            rows="5"
+            placeholder="Paste the job description here so we can match your skills and keywords."
+          ></textarea>
+        </div>
+      </div>
+      <div class="card-footer text-end bg-white border-0">
+        <button type="submit" class="btn btn-primary">
+          Analyze Resume
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-7">
+    <h2 class="mb-3">Analysis Result</h2>
+    <p class="text-muted mb-2">
+      File: <strong>{{ analysis.original_filename }}</strong>
+    </p>
+    <p class="text-muted mb-3">
+      Analyzed on {{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </p>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="stat-card text-center p-3 rounded-3">
+          <div class="stat-label text-muted small">Resume Score</div>
+          <div class="stat-value display-6 fw-bold">
+            {{ "%.1f"|format(analysis.resume_score or 0) }}
+          </div>
+          <div class="stat-help small text-muted">Overall strength (0–100)</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card text-center p-3 rounded-3">
+          <div class="stat-label text-muted small">ATS Compatibility</div>
+          <div class="stat-value display-6 fw-bold text-primary">
+            {{ "%.1f"|format(analysis.ats_score or 0) }}
+          </div>
+          <div class="stat-help small text-muted">Parsing &amp; structure</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card text-center p-3 rounded-3">
+          <div class="stat-label text-muted small">Job Match</div>
+          <div class="stat-value display-6 fw-bold text-success">
+            {{ "%.1f"|format(analysis.job_match_score or 0) }}%
+          </div>
+          <div class="stat-help small text-muted">Skill alignment</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">AI Suggestions</h5>
+      </div>
+      <div class="card-body">
+        {% if analysis.suggestions %}
+        <ul class="mb-0">
+          {% for line in analysis.suggestions.split('\n') if line.strip() %}
+          <li>{{ line }}</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted mb-0">No specific suggestions generated.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <a
+      href="{{ url_for('download_report', analysis_id=analysis.id) }}"
+      class="btn btn-outline-secondary"
+    >
+      Download PDF Report
+    </a>
+    <a href="{{ url_for('upload_resume') }}" class="btn btn-primary ms-2">
+      Analyze Another Resume
+    </a>
+  </div>
+
+  <div class="col-lg-5 mt-4 mt-lg-0">
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">Score Breakdown</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="scoreChart" height="220"></canvas>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white border-0">
+        <h6 class="mb-0">Detected Skills</h6>
+      </div>
+      <div class="card-body">
+        {% if detected_skills %}
+        <div class="d-flex flex-wrap gap-2">
+          {% for skill in detected_skills %}
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+            {{ skill }}
+          </span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No core technical skills detected.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white border-0">
+        <h6 class="mb-0">Missing / Recommended Skills</h6>
+      </div>
+      <div class="card-body">
+        {% if missing_skills %}
+        <p class="small text-muted">
+          Consider highlighting or acquiring these skills if they are relevant for your target role:
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          {% for skill in missing_skills %}
+          <span class="badge bg-warning-subtle text-warning border border-warning-subtle">
+            {{ skill }}
+          </span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No obvious missing skills identified against this job description.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById("scoreChart");
+    if (!ctx) return;
+
+    fetch("{{ url_for('analysis_chart_data', analysis_id=analysis.id) }}")
+      .then((res) => res.json())
+      .then((data) => {
+        new Chart(ctx, {
+          type: "radar",
+          data: {
+            labels: ["Resume Score", "ATS", "Job Match"],
+            datasets: [
+              {
+                label: "Scores",
+                data: [data.resume_score, data.ats_score, data.job_match_score],
+                fill: true,
+                backgroundColor: "rgba(13, 110, 253, 0.2)",
+                borderColor: "rgba(13, 110, 253, 1)",
+                pointBackgroundColor: "rgba(13, 110, 253, 1)",
+              },
+            ],
+          },
+          options: {
+            scales: {
+              r: {
+                suggestedMin: 0,
+                suggestedMax: 100,
+              },
+            },
+          },
+        });
+      })
+      .catch((err) => console.error("Failed to load chart data", err));
+  });
+</script>
+{% endblock %}
+
