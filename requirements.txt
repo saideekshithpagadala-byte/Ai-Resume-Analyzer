@@ -1,0 +1,9 @@
+flask
+flask_sqlalchemy
+flask_bcrypt
+pyjwt
+python-dotenv
+PyPDF2
+docx2txt
+spacy
+reportlab
